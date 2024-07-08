@@ -1,25 +1,26 @@
-# Installs a Nginx server with custome HTTP header
+#!/usr/bin/env bash
+# Configuring web-01 to have http header response
 
-exec {'update':
-  provider => shell,
-  command  => 'sudo apt-get -y update',
-  before   => Exec['install Nginx'],
-}
+# Updating Packages before performing installations
+sudo apt-get update
+sudo apt-get install -y nginx
 
-exec {'install Nginx':
-  provider => shell,
-  command  => 'sudo apt-get -y install nginx',
-  before   => Exec['add_header'],
-}
+# Creating an index.html page
+echo "Hello World!" | sudo tee /var/www/html/index.html
 
-exec { 'add_header':
-  provider    => shell,
-  environment => ["HOST=${hostname}"],
-  command     => 'sudo sed -i "s/include \/etc\/nginx\/sites-enabled\/\*;/include \/etc\/nginx\/sites-enabled\/\*;\n\tadd_header X-Served-By \"$HOST\";/" /etc/nginx/nginx.conf',
-  before      => Exec['restart Nginx'],
-}
+# Performing a "moved permanently redirection" (301)
+string_for_replacement="server_name _;\n\trewrite ^\/redirect_me https:\/\/github.com\/Ajoe62 permanent;"
+sudo sed -i "s/server_name _;/$string_for_replacement/" /etc/nginx/sites-enabled/default
 
-exec { 'restart Nginx':
-  provider => shell,
-  command  => 'sudo service nginx restart',
-}
+# Creating a 404 Custom error page
+echo "Ceci n'est pas une page" | sudo tee /var/www/html/404.html
+string_for_replacement="listen 80 default_server;\n\terror_page 404 \/404.html;\n\tlocation = \/404.html {\n\t\troot \/var\/www\/html;\n\t\tinternal;\n\t}"
+
+# Creating an HTTP response header
+sudo sed -i "/server_name _/a add_header X-Served-By $HOSTNAME;" /etc/nginx/sites-enabled/default
+
+# Testing configurations for syntax errors
+sudo nginx -t
+
+# restart nginx after implementing changes
+sudo service nginx restart
