@@ -35,14 +35,14 @@ defaults
   timeout server 15s
   timeout http-request 10s
 
-frontend web-with-joe-tech-frontend
+frontend topmars-tech-frontend
     bind *:80
-    default_backend web-with-joe-tech-backend
+    default_backend topmars-tech-backend
 
-backend web-with-joe-tech-backend
+backend topmars-tech-backend
     balance roundrobin
-    server 483712-web-01 54.90.63.148:80 check
-    server 483712-web-02 100.26.173.111:80 check
+    server 441924-web-01 52.91.182.234:80 check
+    server 441924-web-02 52.201.163.50:80 check
 "
 
 # shellcheck disable=SC2154
